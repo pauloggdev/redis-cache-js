@@ -37,9 +37,24 @@ app.get('/', async (req, res) => {
     }
     const products = await getProducts();
     console.log('Retrieved products from database');
+    //await client.set('getProducts', JSON.stringify(products), { EX: 10 });
     await client.set('getProducts', JSON.stringify(products), { EX: 10 });
     res.send(products);
 });
+const mapCache = new Map();
+app.get('/getMap', async (req, res) => {
+    if (mapCache.has('getProducts')) {
+        console.log('Get products from cache');
+        const productsCache = mapCache.get('getProducts'); // Removendo await
+        return res.send(JSON.parse(productsCache));
+    }
+
+    const products = await getProducts();
+    mapCache.set('getProducts', JSON.stringify(products)); // Removendo await
+    console.log('Get products from database');
+    res.send(products);
+
+})
 
 const startup = async () => {
     await client.connect();
